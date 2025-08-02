@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Attendance System</title>
+    <title>Digital Area Attendance</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="assets/abnlogo.png">
@@ -15,12 +15,12 @@
             <img src="abnlogo.png" alt="ABN Logo" class="logo">
         </div>
         <div class="header-center">
-            <h1>Digital Attendance System</h1>
+            <h1>Digital Area Attendance</h1>
         </div>
         <div class="header-right">
             <button id="employeeTab" class="tab-button active">Employee</button>
             <button id="supervisorTab" class="tab-button">Supervisor</button>
-            <button id="headTab" class="tab-button">Head</button>
+            <button id="headTab" class="tab-button">Management</button>
         </div>
     </header>
 
@@ -29,7 +29,7 @@
             <h2>Employee Attendance</h2>
             <form id="employeeForm">
                 <div class="form-group">
-                    <label for="companyId">Company ID (6 digits):</label>
+                    <label for="companyId">Company ID(s):</label>
                     <input type="text" id="companyId" maxlength="6" pattern="\d{6}" title="Please enter a 6-digit Company ID" required>
                 </div>
                 <div class="form-group">
@@ -78,12 +78,12 @@
                         </tbody>
                     </table>
                 </div>
-                <button id="submitSummaryBtn">Submit Summary to Head</button>
+                <button id="submitSummaryBtn">Submit Summary to Management</button>
             </div>
         </section>
 
         <section id="headView" class="view">
-            <h2>Head Panel</h2>
+            <h2>Management Panel</h2>
             <form id="headLoginForm" class="auth-form">
                 <div class="form-group">
                     <label for="headPassword">Password:</label>
