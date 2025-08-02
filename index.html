@@ -1,52 +1,127 @@
 <!DOCTYPE html>
-<html lang="tl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Imbitasyon para sa Kaizen - Sarado na</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #e0e0e0, #ffffff);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .card {
-      background: white;
-      padding: 40px 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-      max-width: 500px;
-      text-align: center;
-    }
-    h1 {
-      color: #c62828;
-      margin-bottom: 20px;
-    }
-    p {
-      color: #444;
-      font-size: 17px;
-      line-height: 1.5;
-    }
-    .footer {
-      margin-top: 30px;
-      font-size: 13px;
-      color: #888;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Attendance System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/abnlogo.png">
+    <meta name="theme-color" content="#4CAF50"/>
 </head>
 <body>
-  <div class="card">
-    <h1>Imbitasyon Sarado na</h1>
-    <p>Maraming salamat po sa inyong interes sa aming Kaizen project.</p>
-    <p>Ang imbitasyon ay opisyal nang <strong>sarado</strong> dahil nakumpleto na ang listahan ng mga meyembro.</p>
-    <p>Lubos po naming pinahahalagahan ang inyong suporta at inaasahan ang inyong pakikibahagi sa mga susunod naming proyekto.</p>
-    <div class="footer">
-      &copy; 2025 ABN Engineering Dept. | Lahat ng Karapatan ay Nakalaan
-    </div>
-  </div>
+    <header>
+        <div class="header-left">
+            <img src="assets/abnlogo.png" alt="ABN Logo" class="logo">
+        </div>
+        <div class="header-center">
+            <h1>Digital Attendance System</h1>
+        </div>
+        <div class="header-right">
+            <button id="employeeTab" class="tab-button active">Employee</button>
+            <button id="supervisorTab" class="tab-button">Supervisor</button>
+            <button id="headTab" class="tab-button">Head</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="employeeView" class="view active">
+            <h2>Employee Attendance</h2>
+            <form id="employeeForm">
+                <div class="form-group">
+                    <label for="companyId">Company ID (6 digits):</label>
+                    <input type="text" id="companyId" maxlength="6" pattern="\d{6}" title="Please enter a 6-digit Company ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="areaSelect">Area:</label>
+                    <select id="areaSelect" required>
+                        <option value="">Select Area</option>
+                        <option value="Boiler">Boiler</option>
+                        <option value="WTP">WTP</option>
+                        <option value="WWTP">WWTP</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Bottling">Bottling</option>
+                        <option value="Q.A">Q.A</option>
+                        <option value="Process">Process</option>
+                        <option value="Full Goods">Full Goods</option>
+                    </select>
+                </div>
+                <button type="submit">Submit Attendance</button>
+            </form>
+            <p id="employeeMessage" class="message"></p>
+        </section>
+
+        <section id="supervisorView" class="view">
+            <h2>Supervisor Panel</h2>
+            <form id="supervisorLoginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="supervisorPassword">Password:</label>
+                    <input type="password" id="supervisorPassword" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div id="supervisorContent" class="content-hidden">
+                <p id="supervisorMessage" class="message"></p>
+                <div class="table-container">
+                    <table id="supervisorLogTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Company ID</th>
+                                <th>Area</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Logs will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <button id="submitSummaryBtn">Submit Summary to Head</button>
+            </div>
+        </section>
+
+        <section id="headView" class="view">
+            <h2>Head Panel</h2>
+            <form id="headLoginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="headPassword">Password:</label>
+                    <input type="password" id="headPassword" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div id="headContent" class="content-hidden">
+                <p id="headMessage" class="message"></p>
+                <h3>Attendance Summary</h3>
+                <div id="summaryCards" class="summary-cards">
+                    <!-- Summary cards will be loaded here -->
+                </div>
+                <h3>Submitted Logs</h3>
+                <div class="table-container">
+                    <table id="headLogTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Company ID</th>
+                                <th>Area</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Submitted logs will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; vibecoding <span id="currentYear"></span> | All rights reserved</p>
+        <a href="https://my-portfolio-psi-azure-45.vercel.app/" target="_blank" rel="noopener noreferrer">vibecoding</a>
+    </footer>
+
+    <script src="js/app.js"></script>
 </body>
 </html>
