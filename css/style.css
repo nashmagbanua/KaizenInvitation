@@ -308,7 +308,7 @@ footer {
 }
 
 footer a {
-    color: var(--secondary-color);
+    color: #000;
     text-decoration: none;
     font-weight: bold;
     transition: text-decoration 0.3s ease;
