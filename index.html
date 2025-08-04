@@ -90,7 +90,6 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
     <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
-    <!-- Link to manifest.json -->
     <link rel="manifest" href="manifest.json">
     <!-- End PWA Meta Tags and Icons -->
 
@@ -158,13 +157,14 @@
                     <button onclick="selectArea('QA', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.6s">QA</button>
                     <button onclick="selectArea('Maintenance', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.7s">Maintenance</button>
                     <button onclick="selectArea('Admin', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.8s">Admin</button>
+                    <button onclick="selectArea('Supervisors', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.9s">Supervisors</button>
+                    <button onclick="selectArea('Full Goods', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 1.0s">Full Goods</button> <!-- NEW TEAM AREA -->
                 </div>
-                <button onclick="selectArea('Supervisors', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium w-full" style="animation-delay: 0.9s">Supervisors</button>
             </div>
 
             <!-- Navigation Button for Admin Access -->
             <div class="mt-6">
-                <button onclick="showLoginModal()" class="slide-card w-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 glassmorphism rounded-xl p-4 text-white font-semibold hover:from-blue-500/40 hover:to-purple-500/40 transition-all duration-300 border border-white/30" style="animation-delay: 1s">
+                <button onclick="showLoginModal()" class="slide-card w-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 glassmorphism rounded-xl p-4 text-white font-semibold hover:from-blue-500/40 hover:to-purple-500/40 transition-all duration-300 border border-white/30" style="animation-delay: 1.1s"> <!-- Adjusted animation delay -->
                     <div class="flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -245,8 +245,18 @@
                             <p class="text-4xl font-bold text-green-600" id="overallSummaryTotal">0</p>
                             <p class="text-lg text-green-700">Total Employees Present Today</p>
                         </div>
-                        <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div class="grid grid-cols-2 gap-4 text-sm"> <!-- Changed to 2 columns for Day/Night shifts -->
                             <div class="bg-white border border-green-200 rounded-lg p-3">
+                                <p class="font-bold text-green-600" id="overallSummaryDayShiftTotal">0</p>
+                                <p class="text-green-700">Day Shift Total</p>
+                            </div>
+                            <div class="bg-white border border-green-200 rounded-lg p-3">
+                                <p class="font-bold text-green-600" id="overallSummaryNightShiftTotal">0</p>
+                                <p class="text-green-700">Night Shift Total</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-sm mt-4">
+                             <div class="bg-white border border-green-200 rounded-lg p-3">
                                 <p class="font-bold text-green-600" id="overallSummaryTeams">0</p>
                                 <p class="text-green-700">Teams</p>
                             </div>
@@ -280,12 +290,12 @@
     <!-- Mobile View Modal -->
     <div id="mobileViewModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden">
         <div class="glassmorphism rounded-2xl p-8 max-w-sm mx-4 text-white text-center">
-            <h2 id="mobileViewTeamName" class="text-2xl font-bold mb-4"></h2> <!-- Increased font size -->
-            <p class="text-4xl font-bold text-green-300 mb-6"><span id="mobileViewCount"></span> Present</p> <!-- Increased font size and margin -->
+            <h2 id="mobileViewTeamName" class="text-2xl font-bold mb-4"></h2>
+            <p class="text-4xl font-bold text-green-300 mb-6"><span id="mobileViewCount"></span> Present</p>
             <div id="mobileViewMemberList" class="text-left text-lg space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
                 <!-- Members will be listed here -->
             </div>
-            <button onclick="closeMobileViewModal()" class="mt-8 bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-lg"> <!-- Increased padding and font size -->
+            <button onclick="closeMobileViewModal()" class="mt-8 bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-lg">
                 Close
             </button>
         </div>
@@ -340,7 +350,7 @@
 
         // Template for team names to ensure all teams are always displayed, even if empty.
         const teamNamesTemplate = [
-            "Boiler", "WTP", "WWTP", "Bottling", "Process", "QA", "Maintenance", "Admin", "Supervisors"
+            "Boiler", "WTP", "WWTP", "Bottling", "Process", "QA", "Maintenance", "Admin", "Supervisors", "Full Goods" // ADDED "Full Goods"
         ];
 
         // Helper function to get the start of today in local time (for filtering Supabase data)
@@ -361,16 +371,42 @@
             return `${month}/${day} | ${hours}:${minutes}`;
         }
 
-        // Helper function to group members by team for rendering
-        function groupMembersByTeam(membersArray) {
+        // NEW: Helper function to determine shift based on timestamp
+        function getShift(timestamp) {
+            const date = new Date(timestamp);
+            const hours = date.getHours();
+
+            // Day Shift: 6:00 AM to 5:59 PM (17:59)
+            if (hours >= 6 && hours < 18) {
+                return 'Day Shift';
+            } 
+            // Night Shift: 6:00 PM (18:00) to 11:59 PM (23:59) OR 12:00 AM (00:00) to 5:59 AM (05:59)
+            else if (hours >= 18 || hours < 6) {
+                return 'Night Shift';
+            }
+            return 'Unknown Shift'; // Should not happen with current logic
+        }
+
+        // Helper function to group members by team and then by shift for rendering
+        function groupMembersByTeamAndShift(membersArray) {
             const grouped = {};
             teamNamesTemplate.forEach(team => {
-                // Make comparison case-insensitive for robustness
-                const lowerCaseTeam = team.toLowerCase();
-                grouped[team] = membersArray.filter(member => member.team.toLowerCase() === lowerCaseTeam);
+                grouped[team] = {
+                    'Day Shift': [],
+                    'Night Shift': []
+                };
+            });
+
+            membersArray.forEach(member => {
+                const teamName = member.team;
+                const shift = getShift(member.created_at);
+                if (grouped[teamName] && grouped[teamName][shift]) {
+                    grouped[teamName][shift].push(member);
+                }
             });
             return grouped;
         }
+
 
         // --- Supabase CRUD Operations ---
 
@@ -565,18 +601,27 @@
             const teamCardsContainer = document.getElementById('teamCardsContainer');
             teamCardsContainer.innerHTML = ''; // Clear existing cards
 
-            const groupedAttendance = groupMembersByTeam(allMembers);
-            // console.log('Grouped attendance for rendering:', groupedAttendance); // For debugging
+            const groupedAttendanceByShift = groupMembersByTeamAndShift(allMembers);
+            // console.log('Grouped attendance by team and shift for rendering:', groupedAttendanceByShift); // For debugging
 
-            let totalPresent = 0;
+            let totalPresentOverall = 0;
+            let totalDayShiftOverall = 0;
+            let totalNightShiftOverall = 0;
             let totalTeams = 0;
 
             // Iterate through the template to ensure all teams are displayed
             teamNamesTemplate.forEach(area => {
                 totalTeams++;
-                const members = groupedAttendance[area] || []; // Get members for this team
-                const presentCount = members.length;
-                totalPresent += presentCount;
+                const dayShiftMembers = groupedAttendanceByShift[area]['Day Shift'] || [];
+                const nightShiftMembers = groupedAttendanceByShift[area]['Night Shift'] || [];
+                
+                const dayShiftCount = dayShiftMembers.length;
+                const nightShiftCount = nightShiftMembers.length;
+                const totalTeamPresent = dayShiftCount + nightShiftCount;
+
+                totalPresentOverall += totalTeamPresent;
+                totalDayShiftOverall += dayShiftCount;
+                totalNightShiftOverall += nightShiftCount;
 
                 // Create HTML for each team card
                 const teamCardHtml = `
@@ -587,26 +632,53 @@
                                 <!-- Admin actions can be added here if needed, e.g., 'Add Member' -->
                             </div>
                         </div>
-                        <div class="space-y-2 text-sm">
-                            <div class="text-center">
-                                <p class="text-2xl font-bold text-green-600">${presentCount}</p>
-                                <p class="text-xs opacity-80">Present Today</p>
-                            </div>
-                            <div class="text-xs space-y-1 mt-3" id="memberList-${area}">
-                                ${members.length > 0 ? members.map(member => `
-                                    <div class="flex items-center justify-between py-1 px-2 rounded-md hover:bg-green-100 transition-colors group" id="member-${area}-${member.id}" data-name="${member.name}" data-id="${member.id}">
-                                        <span class="member-name flex-grow text-left">• ${member.name} <span class="text-gray-500">(${formatTimestamp(member.created_at)})</span></span>
-                                        <div class="flex space-x-1 transition-opacity no-print">
-                                            <button onclick="toggleEditMode('${area}', '${member.name}', '${member.id}', this.closest('[id^=\"member-\"]'))" class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-md text-xs">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.232z"></path></svg>
-                                            </button>
-                                            <button onclick="confirmDelete('${area}', '${member.name}', '${member.id}')" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                            </button>
+                        <div class="space-y-4 text-sm">
+                            <!-- Day Shift Section -->
+                            <div class="border-b border-green-200 pb-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="font-medium text-green-700">Day Shift (6AM - 5:59PM)</p>
+                                    <p class="font-bold text-green-600">${dayShiftCount}</p>
+                                </div>
+                                <div class="text-xs space-y-1" id="memberList-Day-${area}">
+                                    ${dayShiftMembers.length > 0 ? dayShiftMembers.map(member => `
+                                        <div class="flex items-center justify-between py-1 px-2 rounded-md hover:bg-green-100 transition-colors group" id="member-${area}-${member.id}" data-name="${member.name}" data-id="${member.id}">
+                                            <span class="member-name flex-grow text-left">• ${member.name} <span class="text-gray-500">(${formatTimestamp(member.created_at)})</span></span>
+                                            <div class="flex space-x-1 transition-opacity no-print">
+                                                <button onclick="toggleEditMode('${area}', '${member.name}', '${member.id}', this.closest('[id^=\"member-\"]'))" class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-md text-xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.232z"></path></svg>
+                                                </button>
+                                                <button onclick="confirmDelete('${area}', '${member.name}', '${member.id}')" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                `).join('') : '<p class="text-gray-500">No attendees yet.</p>'}
+                                    `).join('') : '<p class="text-gray-500">No attendees yet.</p>'}
+                                </div>
                             </div>
+
+                            <!-- Night Shift Section -->
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="font-medium text-green-700">Night Shift (6PM - 5:59AM)</p>
+                                    <p class="font-bold text-green-600">${nightShiftCount}</p>
+                                </div>
+                                <div class="text-xs space-y-1" id="memberList-Night-${area}">
+                                    ${nightShiftMembers.length > 0 ? nightShiftMembers.map(member => `
+                                        <div class="flex items-center justify-between py-1 px-2 rounded-md hover:bg-green-100 transition-colors group" id="member-${area}-${member.id}" data-name="${member.name}" data-id="${member.id}">
+                                            <span class="member-name flex-grow text-left">• ${member.name} <span class="text-gray-500">(${formatTimestamp(member.created_at)})</span></span>
+                                            <div class="flex space-x-1 transition-opacity no-print">
+                                                <button onclick="toggleEditMode('${area}', '${member.name}', '${member.id}', this.closest('[id^=\"member-\"]'))" class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-md text-xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.232z"></path></svg>
+                                                </button>
+                                                <button onclick="confirmDelete('${area}', '${member.name}', '${member.id}')" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('') : '<p class="text-gray-500">No attendees yet.</p>'}
+                                </div>
+                            </div>
+
                             <button onclick="showMobileView('${area}')" class="mt-3 w-full bg-green-500 text-white px-3 py-2 rounded-lg text-xs hover:bg-green-600 transition-colors no-print">
                                 📱 Full Mobile View
                             </button>
@@ -617,7 +689,9 @@
             });
 
             // Update overall summary
-            document.getElementById('overallSummaryTotal').textContent = totalPresent;
+            document.getElementById('overallSummaryTotal').textContent = totalPresentOverall;
+            document.getElementById('overallSummaryDayShiftTotal').textContent = totalDayShiftOverall; // Update Day Shift total
+            document.getElementById('overallSummaryNightShiftTotal').textContent = totalNightShiftOverall; // Update Night Shift total
             document.getElementById('overallSummaryTeams').textContent = totalTeams;
 
             // Update current user info on dashboard
@@ -628,17 +702,35 @@
 
         // Function to show the mobile view modal for a specific team
         function showMobileView(area) {
-            const groupedAttendance = groupMembersByTeam(allMembers);
-            const members = groupedAttendance[area] || [];
-            // Simplified member list HTML for mobile view/screenshot
-            const memberListHtml = members.length > 0 ? members.map(member => `
-                <p class="text-white text-lg py-1">${member.name}</p> <!-- Increased font size for names -->
-            `).join('') : '<p class="text-gray-300">Walang nag-attend sa ngayon.</p>'; // Updated message
+            const groupedAttendanceByShift = groupMembersByTeamAndShift(allMembers);
+            const dayShiftMembers = groupedAttendanceByShift[area]['Day Shift'] || [];
+            const nightShiftMembers = groupedAttendanceByShift[area]['Night Shift'] || [];
+
+            let memberListHtml = '';
+
+            if (dayShiftMembers.length > 0) {
+                memberListHtml += `<p class="text-green-200 text-base font-semibold mt-4 mb-2">Day Shift:</p>`;
+                memberListHtml += dayShiftMembers.map(member => `
+                    <p class="text-white text-lg py-1">${member.name}</p>
+                `).join('');
+            }
+
+            if (nightShiftMembers.length > 0) {
+                memberListHtml += `<p class="text-green-200 text-base font-semibold mt-4 mb-2">Night Shift:</p>`;
+                memberListHtml += nightShiftMembers.map(member => `
+                    <p class="text-white text-lg py-1">${member.name}</p>
+                `).join('');
+            }
+
+            if (memberListHtml === '') {
+                memberListHtml = '<p class="text-gray-300">Walang nag-attend sa ngayon.</p>';
+            }
+
 
             const mobileViewModal = document.getElementById('mobileViewModal');
             document.getElementById('mobileViewTeamName').textContent = `${area} Team Attendance`; // More descriptive title
             document.getElementById('mobileViewMemberList').innerHTML = memberListHtml;
-            document.getElementById('mobileViewCount').textContent = members.length;
+            document.getElementById('mobileViewCount').textContent = dayShiftMembers.length + nightShiftMembers.length;
             mobileViewModal.classList.remove('hidden');
         }
 
