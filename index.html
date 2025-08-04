@@ -593,7 +593,7 @@
                                 ${members.length > 0 ? members.map(member => `
                                     <div class="flex items-center justify-between py-1 px-2 rounded-md hover:bg-green-100 transition-colors group" id="member-${area}-${member.id}" data-name="${member.name}" data-id="${member.id}">
                                         <span class="member-name flex-grow text-left">• ${member.name} <span class="text-gray-500">(${formatTimestamp(member.created_at)})</span></span>
-                                        <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity no-print">
+                                        <div class="flex space-x-1 transition-opacity no-print"> <!-- REMOVED opacity-0 here -->
                                             <button onclick="toggleEditMode('${area}', '${member.name}', '${member.id}', this.closest('[id^=\"member-\"]'))" class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-md text-xs">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.232z"></path></svg>
                                             </button>
@@ -627,10 +627,13 @@
         function showMobileView(area) {
             const groupedAttendance = groupMembersByTeam(allMembers);
             const members = groupedAttendance[area] || [];
-            const memberListHtml = members.length > 0 ? members.map(member => `<div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-2 text-center"><p class="font-medium text-green-800">${member.name}</p><p class="text-xs text-green-600">Present <span class="text-gray-500">(${formatTimestamp(member.created_at)})</span></p></div>`).join('') : '<p class="text-gray-500">No attendees yet.</p>';
+            // Simplified member list HTML for mobile view/screenshot
+            const memberListHtml = members.length > 0 ? members.map(member => `
+                <p class="text-white text-base py-1">${member.name}</p>
+            `).join('') : '<p class="text-gray-300">Walang nag-attend sa ngayon.</p>'; // Updated message
 
             const mobileViewModal = document.getElementById('mobileViewModal');
-            document.getElementById('mobileViewTeamName').textContent = area + ' Team';
+            document.getElementById('mobileViewTeamName').textContent = `${area} Team Attendance`; // More descriptive title
             document.getElementById('mobileViewMemberList').innerHTML = memberListHtml;
             document.getElementById('mobileViewCount').textContent = members.length;
             mobileViewModal.classList.remove('hidden');
