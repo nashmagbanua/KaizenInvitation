@@ -92,6 +92,8 @@
     <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
     <!-- End PWA Meta Tags and Icons -->
 
+    <!-- Import Supabase client library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="gradient-bg">
     <!-- Welcome Modal -->
@@ -129,8 +131,7 @@
                     <img src="assets/abnlogo.png" alt="ABN Logo" class="w-16 h-16 object-contain">
                 </div>
                 <h1 class="text-2xl font-bold mb-2">ABN AREA ATTENDANCE</h1>
-                <p class="text-sm opacity-80">Documentation | Safety & Drill | Accountability | Compliance
-</p>
+                <p class="text-sm opacity-80">Employee Area Tracking System</p>
             </div>
 
             <!-- Name Input -->
@@ -315,25 +316,144 @@
     </div>
 
     <script>
+        // Supabase Configuration
+        // YOUR SUPABASE PROJECT URL AND ANON KEY
+        const SUPABASE_URL = 'https://qbeacrpoyfacgmbzxjcu.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFiZWFjcnBveWZhY2dtYnp4amN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2NTM5NTIsImV4cCI6MjA2NDIyOTk1Mn0.6kfxKLJxidW4BcqsMJte61AtzydrTW-1ZJIJytiUBt4'; 
+
+        // Initialize Supabase client
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // Global variables to store selected area and user name
         let selectedArea = '';
         let userName = '';
         let currentLoggedInUser = 'Guest'; // Default user for dashboard view
         let currentLoggedInArea = 'N/A'; // Default area for dashboard view
 
-        // Production-ready attendance data: Initially empty arrays for each team.
-        // Only users who actively sign in will be added.
-        let attendanceData = {
-            "Boiler": [],
-            "WTP": [],
-            "WWTP": [],
-            "Bottling": [],
-            "Process": [],
-            "QA": [],
-            "Maintenance": [],
-            "Admin": [],
-            "Supervisors": []
-        };
+        // This will store all members fetched from Supabase
+        let allMembers = [];
+
+        // Template for team names to ensure all teams are always displayed, even if empty.
+        const teamNamesTemplate = [
+            "Boiler", "WTP", "WWTP", "Bottling", "Process", "QA", "Maintenance", "Admin", "Supervisors"
+        ];
+
+        // Helper function to group members by team for rendering
+        function groupMembersByTeam(membersArray) {
+            const grouped = {};
+            teamNamesTemplate.forEach(team => {
+                grouped[team] = membersArray.filter(member => member.team === team);
+            });
+            return grouped;
+        }
+
+        // --- Supabase CRUD Operations ---
+
+        // Function to fetch all attendance data from Supabase
+        async function fetchAttendanceData() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('members')
+                    .select('*'); // Select all columns from the 'members' table
+
+                if (error) {
+                    throw error;
+                }
+                allMembers = data; // Update the global allMembers array
+                renderDashboard(); // Re-render the dashboard with fresh data
+            } catch (error) {
+                console.error('Error fetching attendance data:', error.message);
+                showMessageBox('Failed to load attendance data. Please try again.', 'error');
+            }
+        }
+
+        // Function to add a new attendance record to Supabase
+        async function addAttendance(name, team) {
+            try {
+                // Check if the member already exists in the database for this team (case-insensitive)
+                const { data: existingMembers, error: fetchError } = await supabaseClient
+                    .from('members')
+                    .select('name')
+                    .eq('team', team)
+                    .ilike('name', name); // Use ilike for case-insensitive comparison
+
+                if (fetchError) throw fetchError;
+
+                if (existingMembers && existingMembers.length > 0) {
+                    showMessageBox(`${name} is already recorded in ${team} team.`, 'info');
+                    return; // Do not add if already exists
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('members')
+                    .insert([{ name: name, team: team }]);
+
+                if (error) {
+                    throw error;
+                }
+                showMessageBox(`Attendance recorded for ${name} in ${team} team!`, 'success');
+                fetchAttendanceData(); // Refresh data after adding
+            } catch (error) {
+                console.error('Error adding attendance:', error.message);
+                showMessageBox('Failed to record attendance. Please try again.', 'error');
+            }
+        }
+
+        // Function to update an attendance record in Supabase
+        async function updateAttendance(memberId, newName, team) {
+            try {
+                // Check if the new name already exists for another member in the same team (case-insensitive)
+                const { data: existingMembers, error: fetchError } = await supabaseClient
+                    .from('members')
+                    .select('id, name')
+                    .eq('team', team)
+                    .ilike('name', newName);
+
+                if (fetchError) throw fetchError;
+
+                // If a member with the new name exists and it's not the current member being updated
+                if (existingMembers && existingMembers.length > 0 && existingMembers[0].id !== memberId) {
+                    showMessageBox(`'${newName}' already exists in ${team} team.`, 'error');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('members')
+                    .update({ name: newName })
+                    .eq('id', memberId); // Update based on the member's unique ID
+
+                if (error) {
+                    throw error;
+                }
+                showMessageBox(`Name updated to '${newName}'.`, 'success');
+                fetchAttendanceData(); // Refresh data after updating
+            } catch (error) {
+                console.error('Error updating attendance:', error.message);
+                showMessageBox('Failed to update name. Please try again.', 'error');
+                fetchAttendanceData(); // Revert UI if update failed
+            }
+        }
+
+        // Function to delete an attendance record from Supabase
+        async function deleteAttendance(memberId, nameToDelete) {
+            try {
+                const { error } = await supabaseClient
+                    .from('members')
+                    .delete()
+                    .eq('id', memberId); // Delete based on the member's unique ID
+
+                if (error) {
+                    throw error;
+                }
+                showMessageBox(`'${nameToDelete}' deleted.`, 'success');
+                fetchAttendanceData(); // Refresh data after deleting
+            } catch (error) {
+                console.error('Error deleting attendance:', error.message);
+                showMessageBox('Failed to delete employee. Please try again.', 'error');
+            }
+        }
+
+        // --- Existing UI/Logic Functions (modified to use Supabase) ---
 
         // Function to close the welcome modal
         function closeWelcomeModal() {
@@ -341,7 +461,7 @@
         }
 
         // Function to select a team area and highlight the button (for employees)
-        function selectArea(area, event) {
+        async function selectArea(area, event) {
             const fullNameInput = document.getElementById('fullName');
             if (!fullNameInput.value.trim()) {
                 showMessageBox('Please enter your full name first.', 'error');
@@ -363,13 +483,8 @@
             // Add highlight to the clicked button
             event.target.classList.add('bg-white/30', 'border-white/50');
 
-            // Add user to the selected area's attendance if not already present
-            if (!attendanceData[selectedArea].includes(userName)) {
-                attendanceData[selectedArea].push(userName);
-                showMessageBox(`Attendance recorded for ${userName} in ${selectedArea} team!`, 'success');
-            } else {
-                showMessageBox(`${userName} is already recorded in ${selectedArea} team.`, 'info');
-            }
+            // Add user to Supabase
+            await addAttendance(userName, selectedArea);
         }
 
         // Function to show the login modal (for admin access)
@@ -385,12 +500,15 @@
             const teamCardsContainer = document.getElementById('teamCardsContainer');
             teamCardsContainer.innerHTML = ''; // Clear existing cards
 
+            const groupedAttendance = groupMembersByTeam(allMembers);
+
             let totalPresent = 0;
             let totalTeams = 0;
 
-            for (const area in attendanceData) {
+            // Iterate through the template to ensure all teams are displayed
+            teamNamesTemplate.forEach(area => {
                 totalTeams++;
-                const members = attendanceData[area];
+                const members = groupedAttendance[area] || []; // Get members for this team
                 const presentCount = members.length;
                 totalPresent += presentCount;
 
@@ -409,14 +527,14 @@
                                 <p class="text-xs opacity-80">Present Today</p>
                             </div>
                             <div class="text-xs space-y-1 mt-3" id="memberList-${area}">
-                                ${members.length > 0 ? members.map(name => `
-                                    <div class="flex items-center justify-between py-1 px-2 rounded-md hover:bg-green-100 transition-colors group" id="member-${area}-${name.replace(/\s/g, '-')}" data-name="${name}">
-                                        <span class="member-name flex-grow text-left">• ${name}</span>
+                                ${members.length > 0 ? members.map(member => `
+                                    <div class="flex items-center justify-between py-1 px-2 rounded-md hover:bg-green-100 transition-colors group" id="member-${area}-${member.id}" data-name="${member.name}" data-id="${member.id}">
+                                        <span class="member-name flex-grow text-left">• ${member.name}</span>
                                         <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity no-print">
-                                            <button onclick="toggleEditMode('${area}', '${name}', this.closest('[id^=\"member-\"]'))" class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-md text-xs">
+                                            <button onclick="toggleEditMode('${area}', '${member.name}', '${member.id}', this.closest('[id^=\"member-\"]'))" class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-md text-xs">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.232z"></path></svg>
                                             </button>
-                                            <button onclick="confirmDelete('${area}', '${name}')" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
+                                            <button onclick="confirmDelete('${area}', '${member.name}', '${member.id}')" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                             </button>
                                         </div>
@@ -430,7 +548,7 @@
                     </div>
                 `;
                 teamCardsContainer.insertAdjacentHTML('beforeend', teamCardHtml);
-            }
+            });
 
             // Update overall summary
             document.getElementById('overallSummaryTotal').textContent = totalPresent;
@@ -444,8 +562,9 @@
 
         // Function to show the mobile view modal for a specific team
         function showMobileView(area) {
-            const members = attendanceData[area];
-            const memberListHtml = members.length > 0 ? members.map(name => `<div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-2 text-center"><p class="font-medium text-green-800">${name}</p><p class="text-xs text-green-600">Present</p></div>`).join('') : '<p class="text-gray-500">No attendees yet.</p>';
+            const groupedAttendance = groupMembersByTeam(allMembers);
+            const members = groupedAttendance[area] || [];
+            const memberListHtml = members.length > 0 ? members.map(member => `<div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-2 text-center"><p class="font-medium text-green-800">${member.name}</p><p class="text-xs text-green-600">Present</p></div>`).join('') : '<p class="text-gray-500">No attendees yet.</p>';
 
             const mobileViewModal = document.getElementById('mobileViewModal');
             document.getElementById('mobileViewTeamName').textContent = area + ' Team';
@@ -531,7 +650,7 @@
                 closeLoginModal();
                 currentLoggedInUser = 'Super ABN'; // Set admin user
                 currentLoggedInArea = 'Dashboard View'; // Set admin area
-                renderDashboard(); // Render the dashboard with updated data
+                fetchAttendanceData(); // Fetch data from Supabase and render dashboard
                 document.getElementById('page1').classList.add('hidden');
                 document.getElementById('page2').classList.remove('hidden');
             } else {
@@ -558,19 +677,21 @@
             document.querySelectorAll('#page1 button.glassmorphism').forEach(btn => {
                 btn.classList.remove('bg-white/30', 'border-white/50');
             });
-            // For production, you might want to clear attendanceData here or save it to a persistent storage
-            // For now, we'll keep the attendance data for demonstration purposes within the session.
+            // When logging out, we might want to clear the local attendance data
+            // or just let it be re-fetched on next admin login. For this demo, we'll keep it.
+            // If you want to clear it, uncomment the line below:
+            // allMembers = [];
         }
 
         // --- Admin Edit/Delete Functions ---
 
         // Function to toggle edit mode for a specific employee name
-        function toggleEditMode(area, oldName, element) {
+        // Now accepts memberId to uniquely identify the record in Supabase
+        function toggleEditMode(area, oldName, memberId, element) {
             const nameSpan = element.querySelector('.member-name');
             const actionButtons = element.querySelector('.flex.space-x-1');
 
             if (nameSpan.querySelector('input')) { // If already in edit mode
-                // Revert to display mode (should be handled by save/cancel)
                 return;
             }
 
@@ -579,7 +700,7 @@
             inputField.type = 'text';
             inputField.value = oldName.trim();
             inputField.className = 'flex-grow p-1 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-xs';
-            inputField.id = `edit-input-${area}-${oldName.replace(/\s/g, '-')}`; // Unique ID for input
+            inputField.id = `edit-input-${memberId}`; // Unique ID for input
 
             // Replace span with input
             nameSpan.innerHTML = '';
@@ -588,17 +709,18 @@
 
             // Change buttons to Save and Cancel
             actionButtons.innerHTML = `
-                <button onclick="saveEditedName('${area}', '${oldName}', this.closest('[id^=\"member-\"]'))" class="text-green-500 hover:text-green-700 px-1 py-0.5 rounded-md text-xs">
+                <button onclick="saveEditedName('${area}', '${oldName}', '${memberId}', this.closest('[id^=\"member-\"]'))" class="text-green-500 hover:text-green-700 px-1 py-0.5 rounded-md text-xs">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </button>
-                <button onclick="cancelEdit('${area}', '${oldName}', this.closest('[id^=\"member-\"]'))" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
+                <button onclick="cancelEdit('${area}', '${oldName}', '${memberId}', this.closest('[id^=\"member-\"]'))" class="text-red-500 hover:text-red-700 px-1 py-0.5 rounded-md text-xs">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             `;
         }
 
         // Function to save the edited name
-        function saveEditedName(area, oldName, element) {
+        // Now accepts memberId for Supabase update
+        async function saveEditedName(area, oldName, memberId, element) {
             const inputField = element.querySelector('input');
             const newName = inputField.value.trim();
 
@@ -609,57 +731,49 @@
 
             if (newName === oldName) {
                 showMessageBox('No changes made.', 'info');
-                renderDashboard(); // Just re-render to revert buttons
+                fetchAttendanceData(); // Re-fetch to revert buttons
                 return;
             }
 
-            // Check if the new name already exists in the same team (case-insensitive check)
-            const lowerCaseNewName = newName.toLowerCase();
-            const exists = attendanceData[area].some(name => name.toLowerCase() === lowerCaseNewName && name !== oldName);
+            // Check if the new name already exists for another member in the same team (case-insensitive)
+            const { data: existingMembers, error: fetchError } = await supabaseClient
+                .from('members')
+                .select('id, name')
+                .eq('team', area) // Check within the same team
+                .ilike('name', newName);
 
-            if (exists) {
+            if (fetchError) {
+                console.error('Error checking for existing name:', fetchError.message);
+                showMessageBox('An error occurred while checking name existence.', 'error');
+                return;
+            }
+
+            // If a member with the new name exists and it's not the current member being updated
+            if (existingMembers && existingMembers.length > 0 && existingMembers[0].id !== memberId) {
                 showMessageBox(`'${newName}' already exists in ${area} team.`, 'error');
                 return;
             }
 
-            const index = attendanceData[area].indexOf(oldName);
-            if (index > -1) {
-                attendanceData[area][index] = newName;
-                showMessageBox(`'${oldName}' updated to '${newName}'.`, 'success');
-                renderDashboard(); // Re-render the entire dashboard to reflect changes
-            } else {
-                showMessageBox('Error: Original name not found.', 'error');
-                renderDashboard(); // Re-render to revert buttons
-            }
+            await updateAttendance(memberId, newName, area);
         }
 
         // Function to cancel editing
-        function cancelEdit(area, oldName, element) {
+        // Now accepts memberId (though not directly used for Supabase, keeps signature consistent)
+        function cancelEdit(area, oldName, memberId, element) {
             showMessageBox('Edit cancelled.', 'info');
-            renderDashboard(); // Re-render the entire dashboard to revert changes
+            fetchAttendanceData(); // Re-fetch to revert UI
         }
 
         // Function to confirm and delete an employee
-        function confirmDelete(area, nameToDelete) {
-            showConfirmationBox(`Are you sure you want to delete '${nameToDelete}' from ${area} team?`, (confirmed) => {
+        // Now accepts memberId for Supabase deletion
+        function confirmDelete(area, nameToDelete, memberId) {
+            showConfirmationBox(`Are you sure you want to delete '${nameToDelete}' from ${area} team?`, async (confirmed) => {
                 if (confirmed) {
-                    deleteEmployee(area, nameToDelete);
+                    await deleteAttendance(memberId, nameToDelete);
                 } else {
                     showMessageBox('Deletion cancelled.', 'info');
                 }
             });
-        }
-
-        // Function to delete an employee
-        function deleteEmployee(area, nameToDelete) {
-            const index = attendanceData[area].indexOf(nameToDelete);
-            if (index > -1) {
-                attendanceData[area].splice(index, 1);
-                showMessageBox(`'${nameToDelete}' deleted from ${area} team.`, 'success');
-                renderDashboard(); // Re-render the entire dashboard to reflect changes
-            } else {
-                showMessageBox('Error: Employee not found for deletion.', 'error');
-            }
         }
 
         // Set current year in footers and initialize dashboard on load
@@ -668,9 +782,8 @@
             document.getElementById('currentYear1').textContent = currentYear;
             document.getElementById('currentYear2').textContent = currentYear;
             
-            // Initial render of dashboard (it will be hidden until navigated to)
-            // This ensures that even if no one has signed in yet, the dashboard structure is ready.
-            renderDashboard(); 
+            // Initial fetch of attendance data when the page loads
+            fetchAttendanceData(); 
         });
 
         // Enter key support for login code
