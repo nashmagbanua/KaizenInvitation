@@ -158,13 +158,13 @@
                     <button onclick="selectArea('Maintenance', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.7s">Maintenance</button>
                     <button onclick="selectArea('Admin', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.8s">Admin</button>
                     <button onclick="selectArea('Supervisors', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 0.9s">Supervisors</button>
-                    <button onclick="selectArea('Full Goods', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 1.0s">Full Goods</button> <!-- NEW TEAM AREA -->
+                    <button onclick="selectArea('Full Goods', event)" class="slide-card card-hover glassmorphism rounded-xl p-3 text-sm font-medium" style="animation-delay: 1.0s">Full Goods</button>
                 </div>
             </div>
 
             <!-- Navigation Button for Admin Access -->
             <div class="mt-6">
-                <button onclick="showLoginModal()" class="slide-card w-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 glassmorphism rounded-xl p-4 text-white font-semibold hover:from-blue-500/40 hover:to-purple-500/40 transition-all duration-300 border border-white/30" style="animation-delay: 1.1s"> <!-- Adjusted animation delay -->
+                <button onclick="showLoginModal()" class="slide-card w-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 glassmorphism rounded-xl p-4 text-white font-semibold hover:from-blue-500/40 hover:to-purple-500/40 transition-all duration-300 border border-white/30" style="animation-delay: 1.1s">
                     <div class="flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -245,7 +245,7 @@
                             <p class="text-4xl font-bold text-green-600" id="overallSummaryTotal">0</p>
                             <p class="text-lg text-green-700">Total Employees Present Today</p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 text-sm"> <!-- Changed to 2 columns for Day/Night shifts -->
+                        <div class="grid grid-cols-2 gap-4 text-sm">
                             <div class="bg-white border border-green-200 rounded-lg p-3">
                                 <p class="font-bold text-green-600" id="overallSummaryDayShiftTotal">0</p>
                                 <p class="text-green-700">Day Shift Total</p>
@@ -350,15 +350,35 @@
 
         // Template for team names to ensure all teams are always displayed, even if empty.
         const teamNamesTemplate = [
-            "Boiler", "WTP", "WWTP", "Bottling", "Process", "QA", "Maintenance", "Admin", "Supervisors", "Full Goods" // ADDED "Full Goods"
+            "Boiler", "WTP", "WWTP", "Bottling", "Process", "QA", "Maintenance", "Admin", "Supervisors", "Full Goods"
         ];
 
-        // Helper function to get the start of today in local time (for filtering Supabase data)
-        function getStartOfToday() {
+        /**
+         * Helper function to get the start of today in a local time string (for filtering Supabase data).
+         * This is necessary because the `created_at` column is now 'timestamp without time zone'.
+         * @returns {string} The local date string in 'YYYY-MM-DD HH:MM:SS' format.
+         */
+        function getStartOfTodayLocalString() {
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Set to midnight of today
-            // Convert to ISO string, which Supabase expects for timestamp comparisons
-            return today.toISOString(); 
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day} 00:00:00`;
+        }
+
+        /**
+         * NEW: Helper function to get the current timestamp in a local time string (for inserting into Supabase).
+         * @returns {string} The current local timestamp in 'YYYY-MM-DD HH:MM:SS' format.
+         */
+        function getCurrentLocalTimestamp() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         }
 
         // Helper function to format timestamp to MM/DD | HH:MM
@@ -371,7 +391,7 @@
             return `${month}/${day} | ${hours}:${minutes}`;
         }
 
-        // NEW: Helper function to determine shift based on timestamp
+        // Helper function to determine shift based on timestamp
         function getShift(timestamp) {
             const date = new Date(timestamp);
             const hours = date.getHours();
@@ -413,12 +433,13 @@
         // Function to fetch all attendance data from Supabase (filtered for today)
         async function fetchAttendanceData() {
             try {
-                const startOfToday = getStartOfToday();
-                console.log('Fetching data from Supabase for records >=', startOfToday); // Added for debugging
+                // Using the new function to get a local date string for the filter
+                const startOfToday = getStartOfTodayLocalString();
+                console.log('Fetching data from Supabase for records >=', startOfToday);
                 const { data, error } = await supabaseClient
                     .from('members')
                     .select('*')
-                    .gte('created_at', startOfToday); // Filter for records from today onwards
+                    .gte('created_at', startOfToday); // Filter using the local date string
 
                 if (error) {
                     // Log the full error object for more details
@@ -426,7 +447,7 @@
                     throw error;
                 }
                 allMembers = data; // Update the global allMembers array with today's data
-                console.log('Fetched data for today:', allMembers); // For debugging
+                console.log('Fetched data for today:', allMembers);
                 renderDashboard(); // Re-render the dashboard with fresh data
             } catch (error) {
                 console.error('Error fetching attendance data:', error.message);
@@ -437,14 +458,13 @@
         // Function to add a new attendance record to Supabase
         async function addAttendance(name, team) {
             try {
-                // Check if the member already exists in the database for this team AND today (case-insensitive)
-                const startOfToday = getStartOfToday();
+                const startOfToday = getStartOfTodayLocalString();
                 const { data: existingMembers, error: fetchError } = await supabaseClient
                     .from('members')
                     .select('name')
                     .eq('team', team)
                     .ilike('name', name)
-                    .gte('created_at', startOfToday); // Check only for today's records
+                    .gte('created_at', startOfToday);
 
                 if (fetchError) {
                     console.error('Supabase existing member check error:', fetchError);
@@ -453,12 +473,14 @@
 
                 if (existingMembers && existingMembers.length > 0) {
                     showMessageBox(`${name} is already recorded in ${team} team for today.`, 'info');
-                    return; // Do not add if already exists for today
+                    return;
                 }
 
+                // FIX: Explicitly add the `created_at` timestamp
+                const currentTime = getCurrentLocalTimestamp();
                 const { data, error } = await supabaseClient
                     .from('members')
-                    .insert([{ name: name, team: team }]);
+                    .insert([{ name: name, team: team, created_at: currentTime }]);
 
                 if (error) {
                     console.error('Supabase insert error:', error);
@@ -475,34 +497,32 @@
         // Function to update an attendance record in Supabase
         async function updateAttendance(memberId, newName, team) {
             try {
-                // Check if the new name already exists for another member in the same team AND today (case-insensitive)
-                const startOfToday = getStartOfToday();
+                const startOfToday = getStartOfTodayLocalString();
                 const { data: existingMembers, error: fetchError } = await supabaseClient
                     .from('members')
                     .select('id, name')
                     .eq('team', team)
                     .ilike('name', newName)
-                    .gte('created_at', startOfToday); // Check only for today's records
+                    .gte('created_at', startOfToday);
 
                 if (fetchError) {
                     console.error('Supabase update check error (fetching existing members):', fetchError);
                     throw fetchError;
                 }
 
-                // If a member with the new name exists and it's not the current member being updated
                 if (existingMembers && existingMembers.length > 0 && existingMembers[0].id !== memberId) {
                     showMessageBox(`'${newName}' already exists in ${team} team for today.`, 'error');
                     return;
                 }
 
-                console.log(`Attempting to update memberId: ${memberId} with new name: ${newName} in team: ${team}`); // Added for debugging
+                console.log(`Attempting to update memberId: ${memberId} with new name: ${newName} in team: ${team}`);
                 const { data, error } = await supabaseClient
                     .from('members')
                     .update({ name: newName })
-                    .eq('id', memberId); // Update based on the member's unique ID
+                    .eq('id', memberId);
 
                 if (error) {
-                    console.error('Supabase update error (during actual update):', error); // More specific error log
+                    console.error('Supabase update error (during actual update):', error);
                     throw error;
                 }
                 showMessageBox(`Name updated to '${newName}'.`, 'success');
@@ -520,7 +540,7 @@
                 const { error } = await supabaseClient
                     .from('members')
                     .delete()
-                    .eq('id', memberId); // Delete based on the member's unique ID
+                    .eq('id', memberId);
 
                 if (error) {
                     console.error('Supabase delete error:', error);
@@ -690,8 +710,8 @@
 
             // Update overall summary
             document.getElementById('overallSummaryTotal').textContent = totalPresentOverall;
-            document.getElementById('overallSummaryDayShiftTotal').textContent = totalDayShiftOverall; // Update Day Shift total
-            document.getElementById('overallSummaryNightShiftTotal').textContent = totalNightShiftOverall; // Update Night Shift total
+            document.getElementById('overallSummaryDayShiftTotal').textContent = totalDayShiftOverall;
+            document.getElementById('overallSummaryNightShiftTotal').textContent = totalNightShiftOverall;
             document.getElementById('overallSummaryTeams').textContent = totalTeams;
 
             // Update current user info on dashboard
@@ -728,7 +748,7 @@
 
 
             const mobileViewModal = document.getElementById('mobileViewModal');
-            document.getElementById('mobileViewTeamName').textContent = `${area} Team Attendance`; // More descriptive title
+            document.getElementById('mobileViewTeamName').textContent = `${area} Team Attendance`;
             document.getElementById('mobileViewMemberList').innerHTML = memberListHtml;
             document.getElementById('mobileViewCount').textContent = dayShiftMembers.length + nightShiftMembers.length;
             mobileViewModal.classList.remove('hidden');
@@ -845,41 +865,32 @@
             currentLoggedInUser = 'Guest'; // Reset to default
             currentLoggedInArea = 'N/A'; // Reset to default
 
-            // Remove highlight from all buttons on logout
             document.querySelectorAll('#page1 button.glassmorphism').forEach(btn => {
                 btn.classList.remove('bg-white/30', 'border-white/50');
             });
-            // When logging out, we might want to clear the local attendance data
-            // or just let it be re-fetched on next admin login. For this demo, we'll keep it.
-            // If you want to clear it, uncomment the line below:
-            // allMembers = [];
         }
 
         // --- Admin Edit/Delete Functions ---
 
         // Function to toggle edit mode for a specific employee name
-        // Now accepts memberId to uniquely identify the record in Supabase
         function toggleEditMode(area, oldName, memberId, element) {
             const nameSpan = element.querySelector('.member-name');
             const actionButtons = element.querySelector('.flex.space-x-1');
 
-            if (nameSpan.querySelector('input')) { // If already in edit mode
+            if (nameSpan.querySelector('input')) {
                 return;
             }
 
-            // Create input field
             const inputField = document.createElement('input');
             inputField.type = 'text';
             inputField.value = oldName.trim();
             inputField.className = 'flex-grow p-1 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-xs';
-            inputField.id = `edit-input-${memberId}`; // Unique ID for input
+            inputField.id = `edit-input-${memberId}`;
 
-            // Replace span with input
             nameSpan.innerHTML = '';
             nameSpan.appendChild(inputField);
             inputField.focus();
 
-            // Change buttons to Save and Cancel
             actionButtons.innerHTML = `
                 <button onclick="saveEditedName('${area}', '${oldName}', '${memberId}', this.closest('[id^=\"member-\"]'))" class="text-green-500 hover:text-green-700 px-1 py-0.5 rounded-md text-xs">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -891,7 +902,6 @@
         }
 
         // Function to save the edited name
-        // Now accepts memberId for Supabase update
         async function saveEditedName(area, oldName, memberId, element) {
             const inputField = element.querySelector('input');
             const newName = inputField.value.trim();
@@ -903,19 +913,17 @@
 
             if (newName === oldName) {
                 showMessageBox('No changes made.', 'info');
-                fetchAttendanceData(); // Re-fetch to revert buttons
+                fetchAttendanceData();
                 return;
             }
 
-            // Check if the new name already exists for another member in the same team AND today (case-insensitive)
-            // This check is now also for TODAY's records only
-            const startOfToday = getStartOfToday();
+            const startOfToday = getStartOfTodayLocalString();
             const { data: existingMembers, error: fetchError } = await supabaseClient
                 .from('members')
                 .select('id, name')
-                .eq('team', area) // Check within the same team
+                .eq('team', area)
                 .ilike('name', newName)
-                .gte('created_at', startOfToday); // Check only for today's records
+                .gte('created_at', startOfToday);
 
             if (fetchError) {
                 console.error('Error checking for existing name:', fetchError.message);
@@ -923,7 +931,6 @@
                 return;
             }
 
-            // If a member with the new name exists and it's not the current member being updated
             if (existingMembers && existingMembers.length > 0 && existingMembers[0].id !== memberId) {
                 showMessageBox(`'${newName}' already exists in ${area} team for today.`, 'error');
                 return;
@@ -933,14 +940,12 @@
         }
 
         // Function to cancel editing
-        // Now accepts memberId (though not directly used for Supabase, keeps signature consistent)
         function cancelEdit(area, oldName, memberId, element) {
             showMessageBox('Edit cancelled.', 'info');
-            fetchAttendanceData(); // Re-fetch to revert UI
+            fetchAttendanceData();
         }
 
         // Function to confirm and delete an employee
-        // Now accepts memberId for Supabase deletion
         function confirmDelete(area, nameToDelete, memberId) {
             showConfirmationBox(`Are you sure you want to delete '${nameToDelete}' from ${area} team?`, async (confirmed) => {
                 if (confirmed) {
