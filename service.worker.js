@@ -1,4 +1,4 @@
-const CACHE_NAME = 'abn-attendance-cache-v2'; // Cache version
+const CACHE_NAME = 'abn-attendance-cache-v3'; // Cache version
 const urlsToCache = [
     './', // Caches the root (index.html)
     './index.html',
